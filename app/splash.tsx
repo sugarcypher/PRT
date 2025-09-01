@@ -8,11 +8,15 @@ import {
   TextInput,
   Alert,
   SafeAreaView,
+  Image,
+  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Brain, MessageSquare, Target, Shield, Clock } from 'lucide-react-native';
+import { MessageSquare, Target, Shield, Clock } from 'lucide-react-native';
 import { useThink } from '../hooks/think-store';
 import Colors from '../constants/colors';
+
+const { width } = Dimensions.get('window');
 
 export default function SplashScreen() {
   const { createUserSession } = useThink();
@@ -48,8 +52,11 @@ export default function SplashScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loginContainer}>
           <View style={styles.logoContainer}>
-            <Brain size={60} color={Colors.light.tint} />
-            <Text style={styles.logoText}>T.H.I.N.K.</Text>
+            <Image 
+              source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qw1ucadf89onx8uqtfhwr' }}
+              style={styles.loginLogo}
+              resizeMode="contain"
+            />
           </View>
 
           <Text style={styles.loginTitle}>Create Your Session</Text>
@@ -105,15 +112,17 @@ export default function SplashScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Brain size={80} color={Colors.light.tint} />
-          <Text style={styles.title}>T.H.I.N.K.</Text>
-          <Text style={styles.subtitle}>Before You Speak</Text>
+          <Image 
+            source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qw1ucadf89onx8uqtfhwr' }}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.subtitle}>Master Thoughtful Communication</Text>
         </View>
 
         <View style={styles.content}>
           <Text style={styles.description}>
-            Master the art of thoughtful communication with our speech training app.
-            Learn to pause, evaluate, and speak with purpose.
+            A metacognitive pause button that forces a System-2 check before your System-1 impulse goes out. Train yourself to communicate with intention, clarity, and kindness.
           </Text>
 
           <View style={styles.featuresContainer}>
@@ -194,18 +203,16 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     paddingTop: 20,
   },
-  title: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: Colors.light.tint,
-    marginTop: 16,
-    letterSpacing: 2,
+  logo: {
+    width: width * 0.6,
+    height: 120,
+    marginBottom: 20,
   },
   subtitle: {
-    fontSize: 18,
-    color: '#666',
-    marginTop: 8,
-    fontStyle: 'italic',
+    fontSize: 20,
+    color: '#333',
+    fontWeight: '500',
+    textAlign: 'center',
   },
   content: {
     flex: 1,
@@ -293,12 +300,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 48,
   },
-  logoText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: Colors.light.tint,
-    marginTop: 12,
-    letterSpacing: 1,
+  loginLogo: {
+    width: width * 0.5,
+    height: 100,
   },
   loginTitle: {
     fontSize: 24,
