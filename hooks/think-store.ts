@@ -1,10 +1,12 @@
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { ThinkEvaluation, KeepToYourselfStats, ProgressionState } from '../types/think';
+import { ThinkEvaluation, KeepToYourselfStats, ProgressionState, UserSession, AppState } from '../types/think';
 
 const STORAGE_KEY = 'think-evaluations';
 const PROGRESSION_KEY = 'think-progression';
+
+const APP_STATE_KEY = 'think-app-state';
 
 export const [ThinkProvider, useThink] = createContextHook(() => {
   const [evaluations, setEvaluations] = useState<ThinkEvaluation[]>([]);
@@ -15,9 +17,15 @@ export const [ThinkProvider, useThink] = createContextHook(() => {
     pleaseUnlocked: false,
     reallyUnlocked: false
   });
+  const [appState, setAppState] = useState<AppState>({
+    isFirstLaunch: true,
+    hasCompletedOnboarding: false,
+    currentUser: null
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    loadAppState();
     loadEvaluations();
     loadProgression();
   }, []);
@@ -43,6 +51,25 @@ export const [ThinkProvider, useThink] = createContextHook(() => {
       console.error('Error loading evaluations:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadAppState = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(APP_STATE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setAppState({
+          ...parsed,
+          currentUser: parsed.currentUser ? {
+            ...parsed.currentUser,
+            createdAt: new Date(parsed.currentUser.createdAt),
+            lastActiveAt: new Date(parsed.currentUser.lastActiveAt)
+          } : null
+        });
+      }
+    } catch (error) {
+      console.error('Error loading app state:', error);
     }
   };
 
@@ -72,6 +99,8 @@ export const [ThinkProvider, useThink] = createContextHook(() => {
       console.error('Error loading progression:', error);
     }
   };
+
+
 
   const updateProgression = useCallback(async (activityDate: Date) => {
     const today = new Date(activityDate.getFullYear(), activityDate.getMonth(), activityDate.getDate());
@@ -236,14 +265,53 @@ export const [ThinkProvider, useThink] = createContextHook(() => {
     return () => clearInterval(interval);
   }, []);
 
+  const createUserSession = useCallback(async (name: string, email?: string) => {
+    const newUser: UserSession = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      name,
+      email,
+      createdAt: new Date(),
+      lastActiveAt: new Date()
+    };
+    
+    const newAppState: AppState = {
+      isFirstLaunch: false,
+      hasCompletedOnboarding: true,
+      currentUser: newUser
+    };
+    
+    setAppState(newAppState);
+    
+    // Reset progression for new user
+    const initialProgression = {
+      startDate: new Date(),
+      consecutiveDays: 0,
+      lastActiveDate: null,
+      pleaseUnlocked: false,
+      reallyUnlocked: false
+    };
+    setProgression(initialProgression);
+    
+    try {
+      await AsyncStorage.setItem(APP_STATE_KEY, JSON.stringify(newAppState));
+      await AsyncStorage.setItem(PROGRESSION_KEY, JSON.stringify(initialProgression));
+    } catch (error) {
+      console.error('Error creating user session:', error);
+    }
+  }, []);
+  
+
+
   return useMemo(() => ({
     evaluations,
     progression,
+    appState,
     isLoading,
     saveEvaluation,
     clearHistory,
     deleteEvaluation,
     getStats,
-    getKeepToYourselfStats
-  }), [evaluations, progression, isLoading, saveEvaluation, clearHistory, deleteEvaluation, getStats, getKeepToYourselfStats]);
+    getKeepToYourselfStats,
+    createUserSession
+  }), [evaluations, progression, appState, isLoading, saveEvaluation, clearHistory, deleteEvaluation, getStats, getKeepToYourselfStats, createUserSession]);
 });

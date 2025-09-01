@@ -29,6 +29,20 @@ export interface ProgressionState {
   reallyUnlocked: boolean;
 }
 
+export interface UserSession {
+  id: string;
+  name: string;
+  email?: string;
+  createdAt: Date;
+  lastActiveAt: Date;
+}
+
+export interface AppState {
+  isFirstLaunch: boolean;
+  hasCompletedOnboarding: boolean;
+  currentUser: UserSession | null;
+}
+
 export const CRITERIA_LABELS = {
   true: "True",
   helpful: "Helpful",
